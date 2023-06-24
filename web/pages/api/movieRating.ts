@@ -1,5 +1,5 @@
 import { getMovieRatings } from "../../lib/getMovieRating";
-import { getAuth } from "@clerk/nextjs/dist/types/server/getAuth";
+import { getAuth } from "@clerk/nextjs/server";
 import { db } from "@vercel/postgres";
 import type { NextApiRequest, NextApiResponse } from "next";
 
