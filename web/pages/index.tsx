@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TMDBNodeApi } from "tmdb-js-node";
 
 export default function Home() {
   return (
