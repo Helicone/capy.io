@@ -6,7 +6,9 @@ export default function Home() {
       className={`flex flex-col sm:flex-row px-4 sm:px-16 gap-16 items-center justify-center align-center h-screen w-screen bg-primary`}
     >
       <div className="flex flex-col space-y-8">
-        <h1 className="text-white font-semibold text-7xl font-mono">Capy.io</h1>
+        <h1 className="text-white font-semibold text-6xl font-mono tracking-tight">
+          Capybara Recs
+        </h1>
         <p className="text-gray-200 text-2xl tracking-wide">
           Get perfect movie recommendations for you and your friends.
         </p>
@@ -16,6 +18,12 @@ export default function Home() {
             className="bg-accent hover:bg-violet-700 px-4 py-2 text-white rounded-xl font-medium text-lg"
           >
             Get Started
+          </Link>
+          <Link
+            href="/signin"
+            className="bg-green-500 hover:bg-green-700 px-4 py-2 text-white rounded-xl font-medium text-lg"
+          >
+            Sign In
           </Link>
         </div>
       </div>
