@@ -1,10 +1,6 @@
 import Link from "next/link";
-import { sql } from "@vercel/postgres";
 
-export default async function Home() {
-  const { rows } = await sql`SELECT * from CARTS where user_id=${"Hello"}`;
-  console.log(rows);
-
+export default function Home() {
   return (
     <main
       className={`flex flex-col sm:flex-row px-4 sm:px-16 gap-16 items-center justify-center align-center h-screen w-screen bg-primary`}
