@@ -18,6 +18,12 @@ export default function Home() {
           >
             Get Started
           </Link>
+          <Link
+            href="/signin"
+            className="bg-green-500 hover:bg-green-700 px-4 py-2 text-white rounded-xl font-medium text-lg"
+          >
+            Sign In
+          </Link>
         </div>
       </div>
       <video
