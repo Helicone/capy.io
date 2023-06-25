@@ -1,4 +1,5 @@
 import { SignOutButton } from "@clerk/nextjs";
+import Link from "next/link";
 
 interface BasePageProps {
   children: React.ReactNode;
@@ -17,7 +18,7 @@ const BasePage = (props: BasePageProps) => {
           <SignOutButton />
         </div>
       </nav>
-      <main className={`flex flex-col h-full w-full py-4 px-8 space-y-8`}>
+      <main className={`flex flex-col h-full w-full py-4 px-8`}>
         {children}
       </main>
     </div>

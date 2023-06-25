@@ -2,6 +2,7 @@
 import BasePage from "@/components/basePage";
 import { useUser } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { DiscoverMovieDiscoverResult } from "tmdb-js-node";
 import { MovieRatingResponse } from "./api/movieRating";
@@ -42,7 +43,6 @@ const Quiz = (props: QuizProps) => {
     refetchOnWindowFocus: false,
   });
 
-  console.log("HOI");
   const {
     data: myList,
     isLoading: isMyListLoading,
@@ -130,24 +130,38 @@ const Quiz = (props: QuizProps) => {
     );
   };
 
+  const LIMIT = 20;
+
   return (
     <BasePage>
+      <div className="w-full justify-start text-white">
+        <Link href="/home">{`<- Home`}</Link>
+      </div>
       <div className="flex flex-col text-center justify-center items-center space-y-12 w-full max-w-4xl mx-auto py-8">
         <p className="text-white font-semibold text-2xl">
-          Click on which movie you think is better! ({numberOfMoviesRated}
-          /10)
+          Click on which movie you think is better! ({numberOfMoviesRated + 1}/{" "}
+          {LIMIT})
         </p>
-        <div className="w-full flex flex-row gap-4 sm:gap-16 justify-center h-full">
-          {isTopMoviesLoading ? (
-            <p>Loading...</p>
-          ) : (
-            <>
-              {movies.map((movie: DiscoverMovieDiscoverResult, idx) =>
-                renderMovieCard(movie, idx)
-              )}
-            </>
-          )}
-        </div>
+
+        {numberOfMoviesRated > LIMIT ? (
+          <div className="border border-gray-200 border-dashed p-8 rounded-xl text-white text-xl w-[450px]">
+            You&apos;re all set with the quiz. Go to the recs page to find a
+            friend to watch a movie with!
+          </div>
+        ) : (
+          <div className="w-full flex flex-row gap-4 sm:gap-16 justify-center h-full">
+            {isTopMoviesLoading ? (
+              <p>Loading...</p>
+            ) : (
+              <>
+                {movies.map((movie: DiscoverMovieDiscoverResult, idx) =>
+                  renderMovieCard(movie, idx)
+                )}
+              </>
+            )}
+          </div>
+        )}
+
         <div>
           <button
             onClick={() => {
