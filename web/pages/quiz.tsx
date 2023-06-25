@@ -3,6 +3,8 @@ import BasePage from "@/components/basePage";
 import { useUser } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { DiscoverMovieDiscoverResult } from "tmdb-js-node";
+import { MovieRatingResponse } from "./api/movieRating";
 
 interface QuizProps {}
 
@@ -25,7 +27,7 @@ function getRandomItems<T>(arr: T[], num: number): T[] {
 const Quiz = (props: QuizProps) => {
   const { isLoaded, isSignedIn, user } = useUser();
 
-  const { data, isLoading } = useQuery({
+  const { data: topMovies, isLoading: isTopMoviesLoading } = useQuery({
     queryKey: ["top-movies"],
     queryFn: async () => {
       const resp = await fetch("/api/top-movies", {
@@ -34,30 +36,81 @@ const Quiz = (props: QuizProps) => {
           "Content-Type": "application/json",
         },
       });
-      //   console.log("resp", await resp.json());
-      return resp.json();
+
+      return resp.json() as Promise<DiscoverMovieDiscoverResult[]>;
     },
     refetchOnWindowFocus: false,
   });
 
-  const [movies, setMovies] = useState([]);
+  console.log("HOI");
+  const {
+    data: myList,
+    isLoading: isMyListLoading,
+    refetch: refetchMyList,
+  } = useQuery({
+    queryKey: ["getMovieRating"],
+    queryFn: async () => {
+      console.log("getting movie ratings");
+      const resp = await fetch("/api/movieRating", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log("got movie ratings");
+
+      const x = (await resp.json()) as Promise<MovieRatingResponse>;
+      console.log("x", x);
+      return x;
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  const [numberOfMoviesRated, setNumberOfMoviesRated] = useState<number>(0);
+  useEffect(() => {
+    if (myList?.ratings) {
+      setNumberOfMoviesRated(myList?.ratings?.length);
+    }
+  }, [myList?.ratings]);
+
+  const [movies, setMovies] = useState<DiscoverMovieDiscoverResult[]>([]);
 
   useEffect(() => {
-    if (data) {
-      setMovies(getRandomItems(data, 2));
+    if (topMovies) {
+      setMovies(getRandomItems(topMovies, 2));
     }
-  }, [data]);
+  }, [topMovies]);
 
   if (!isLoaded || !isSignedIn) {
     return null;
   }
 
-  const renderMovieCard = (movie: any, idx: number) => {
+  const onMovieSelect = (movie: DiscoverMovieDiscoverResult) => {
+    const acceptedMovieId = movie.id;
+    const rejectedMovieId = movies.filter((m) => m.id !== movie.id)[0].id;
+    fetch("/api/movieRating", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        rejectedMovieImbdId: rejectedMovieId,
+        acceptedMovieImbdId: acceptedMovieId,
+      }),
+    }).then((res) => {
+      // alert("res" + JSON.stringify(res));
+    });
+    setMovies(getRandomItems(topMovies!, 2));
+    setNumberOfMoviesRated(numberOfMoviesRated + 1);
+  };
+
+  const renderMovieCard = (movie: DiscoverMovieDiscoverResult, idx: number) => {
     const moviePath = "https://image.tmdb.org/t/p/w780" + movie.poster_path;
     return (
-      <div
+      <button
         key={idx}
         className="w-fit text-white flex flex-col divide-y-2 divide-gray-200 hover:divide-violet-500 items-center border-2 p-0.5 border-gray-200 hover:border-violet-500 hover:cursor-pointer rounded-xl"
+        onClick={() => onMovieSelect(movie)}
       >
         <img
           src={moviePath}
@@ -73,7 +126,7 @@ const Quiz = (props: QuizProps) => {
             {movie.title}
           </p>
         </div>
-      </div>
+      </button>
     );
   };
 
@@ -81,19 +134,24 @@ const Quiz = (props: QuizProps) => {
     <BasePage>
       <div className="flex flex-col text-center justify-center items-center space-y-12 w-full max-w-4xl mx-auto py-8">
         <p className="text-white font-semibold text-2xl">
-          Click on which movie you think is better! (2/10)
+          Click on which movie you think is better! ({numberOfMoviesRated}
+          /10)
         </p>
         <div className="w-full flex flex-row gap-4 sm:gap-16 justify-center h-full">
-          {isLoading ? (
+          {isTopMoviesLoading ? (
             <p>Loading...</p>
           ) : (
-            <>{movies.map((movie: any, idx) => renderMovieCard(movie, idx))}</>
+            <>
+              {movies.map((movie: DiscoverMovieDiscoverResult, idx) =>
+                renderMovieCard(movie, idx)
+              )}
+            </>
           )}
         </div>
         <div>
           <button
             onClick={() => {
-              setMovies(getRandomItems(data, 2));
+              setMovies(getRandomItems(topMovies || [], 2));
             }}
             className="bg-green-500 hover:bg-green-700 px-4 py-2 text-white rounded-xl font-medium text-md"
           >

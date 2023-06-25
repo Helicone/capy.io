@@ -3,13 +3,10 @@ import { getAuth } from "@clerk/nextjs/server";
 import { db } from "@vercel/postgres";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-type MovieRatingResponse =
-  | {
-      error?: string;
-    }
-  | {
-      ratings: MovieRating[];
-    };
+export type MovieRatingResponse = {
+  error?: string;
+  ratings?: MovieRating[];
+};
 
 export interface MovieRating {
   acceptedMovieImbdId: string;
@@ -18,7 +15,10 @@ export interface MovieRating {
 }
 
 // Post da review up in here
-export default async function handler(req: NextApiRequest, res: NextApiResponse<MovieRatingResponse>) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<MovieRatingResponse>
+) {
   const { userId } = getAuth(req);
   if (!userId) {
     res.status(401).json({
