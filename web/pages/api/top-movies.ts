@@ -14,7 +14,7 @@ export default async function handler(
   // 20 results per page - get the first 200 results i.e. 10 pages
   const topMovieRequestParams = Array(10).fill(0).map((_, i) => i + 1).map(page => {
     return {
-      include_adult: true,
+      include_adult: false,
       include_video: false,
       language: "en-US",
       page,
