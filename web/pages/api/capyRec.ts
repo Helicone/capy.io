@@ -55,9 +55,7 @@ export default async function handler(
         console.log("Capy movie recommendations:", capyMovieRecs); // Added console log
       } catch (error) {
         console.error("Error fetching movie ratings:", error); // Added console log
-        return res.status(500).json({
-          error: "Failed to fetch movie ratings.",
-        });
+        throw error;
       }
 
       return res.status(200).json({ capyMovieRecs });
