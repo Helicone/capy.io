@@ -8,7 +8,7 @@ const BasePage = (props: BasePageProps) => {
   const { children } = props;
 
   return (
-    <div className="h-screen flex flex-col items-center bg-primary divide-y divide-gray-500">
+    <div className="min-h-screen flex flex-col items-center bg-primary divide-y divide-gray-500">
       <nav className="w-full p-4 flex flex-row items-center justify-between">
         <p className="text-white font-semibold text-2xl font-mono tracking-tight">
           Capybara Recs
