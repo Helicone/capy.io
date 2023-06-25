@@ -69,7 +69,9 @@ const Quiz = (props: QuizProps) => {
           }}
         />
         <div className="w-full flex-1 py-4 items-center flex flex-col justify-center bg-gray-600 rounded-b-lg">
-          <p className="text-lg tracking-wide">{movie.title}</p>
+          <p className="text-lg tracking-wide truncate max-w-[300px]">
+            {movie.title}
+          </p>
         </div>
       </div>
     );
