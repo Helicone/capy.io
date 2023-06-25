@@ -28,27 +28,39 @@ interface CapyRec {
   title: string;
   imbdId: string;
 }
-
 export async function getMovieRatings(userIds: string[]): Promise<CapyMovieRec[]> {
+  console.log("getMovieRatings started"); // Added console log
   try {
     const configuration = new Configuration({
       apiKey: process.env.OPENAI_API_KEY!,
       heliconeApiKey: process.env.HELICONE_API_KEY,
     });
+    console.log("Configuration created:", configuration); // Added console log
 
     const client = await db.connect();
+    console.log("Database client connected"); // Added console log
+
     const reviews = await fetchUserReviews(userIds, client);
+    console.log("Fetched user reviews:", reviews); // Added console log
+
     const unseenMovies = await fetchUnseenMovies(userIds, client);
+    console.log("Fetched unseen movies:", unseenMovies); // Added console log
+
     const groupedRatings = groupRatingsByUser(reviews, unseenMovies);
+    console.log("Grouped ratings by user:", groupedRatings); // Added console log
+
     const movieReviews = formatGroupedRatingsForOpenAI(groupedRatings);
+    console.log("Formatted grouped ratings for OpenAI:", movieReviews); // Added console log
 
     const recommendations = await fetchOpenAIRecommendations(movieReviews, configuration);
+    console.log("Fetched recommendations from OpenAI:", recommendations); // Added console log
 
     const formattedMovies = await formatMovieRecommendations(recommendations);
+    console.log("Formatted movie recommendations:", formattedMovies); // Added console log
 
     return formattedMovies;
   } catch (error) {
-    console.error("An unexpected error occurred:", error);
+    console.error("An unexpected error occurred in getMovieRatings:", error); // Updated console error log
     throw error;
   }
 }
