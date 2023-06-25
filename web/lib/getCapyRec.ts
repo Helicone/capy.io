@@ -28,7 +28,9 @@ interface CapyRec {
   title: string;
   imbdId: string;
 }
-export async function getMovieRatings(userIds: string[]): Promise<CapyMovieRec[]> {
+export async function getMovieRatings(
+  userIds: string[]
+): Promise<CapyMovieRec[]> {
   console.log("getMovieRatings started"); // Added console log
   try {
     const configuration = new Configuration({
@@ -52,7 +54,10 @@ export async function getMovieRatings(userIds: string[]): Promise<CapyMovieRec[]
     const movieReviews = formatGroupedRatingsForOpenAI(groupedRatings);
     console.log("Formatted grouped ratings for OpenAI:", movieReviews); // Added console log
 
-    const recommendations = await fetchOpenAIRecommendations(movieReviews, configuration);
+    const recommendations = await fetchOpenAIRecommendations(
+      movieReviews,
+      configuration
+    );
     console.log("Fetched recommendations from OpenAI:", recommendations); // Added console log
 
     const formattedMovies = await formatMovieRecommendations(recommendations);
@@ -65,7 +70,9 @@ export async function getMovieRatings(userIds: string[]): Promise<CapyMovieRec[]
   }
 }
 
-async function formatMovieRecommendations(capyRecs: CapyRec[]): Promise<CapyMovieRec[]> {
+async function formatMovieRecommendations(
+  capyRecs: CapyRec[]
+): Promise<CapyMovieRec[]> {
   const recommendationPromises = capyRecs.map(async (rec) => {
     try {
       const { imbdId, title } = rec;
@@ -85,11 +92,17 @@ async function formatMovieRecommendations(capyRecs: CapyRec[]): Promise<CapyMovi
   return Promise.all(recommendationPromises);
 }
 
-async function fetchMovieInformation(imdbId: string): Promise<{ posterUrl: string; description: string }> {
+async function fetchMovieInformation(
+  imdbId: string
+): Promise<{ posterUrl: string; description: string }> {
   try {
-    const response = await api.v3.find.findById(imdbId, { external_source: "imdb_id" });
+    const response = await api.v3.find.findById(imdbId, {
+      external_source: "imdb_id",
+    });
     return {
-      posterUrl: "https://image.tmdb.org/t/p/w780" + response.movie_results[0].poster_path,
+      posterUrl:
+        "https://image.tmdb.org/t/p/w780" +
+        response.movie_results[0].poster_path,
       description: response.movie_results[0].overview,
     };
   } catch (error) {
@@ -101,14 +114,24 @@ async function fetchMovieInformation(imdbId: string): Promise<{ posterUrl: strin
 function groupRatingsByUser(
   reviews: Review[],
   unseenMovies: UnseenMovie[]
-): Record<string, { preferred: string[]; unpreferred: string[]; notSeen: string[] }> {
-  const groupedRatings: Record<string, { preferred: string[]; unpreferred: string[]; notSeen: string[] }> = {};
+): Record<
+  string,
+  { preferred: string[]; unpreferred: string[]; notSeen: string[] }
+> {
+  const groupedRatings: Record<
+    string,
+    { preferred: string[]; unpreferred: string[]; notSeen: string[] }
+  > = {};
 
   for (const review of reviews) {
     if (!review.user_id) continue; // Skip if user_id is null
 
     if (!groupedRatings[review.user_id]) {
-      groupedRatings[review.user_id] = { preferred: [], unpreferred: [], notSeen: [] };
+      groupedRatings[review.user_id] = {
+        preferred: [],
+        unpreferred: [],
+        notSeen: [],
+      };
     }
 
     if (review.accepted_movie) {
@@ -122,7 +145,11 @@ function groupRatingsByUser(
 
   for (const unseenMovie of unseenMovies) {
     if (!groupedRatings[unseenMovie.user_id]) {
-      groupedRatings[unseenMovie.user_id] = { preferred: [], unpreferred: [], notSeen: [] };
+      groupedRatings[unseenMovie.user_id] = {
+        preferred: [],
+        unpreferred: [],
+        notSeen: [],
+      };
     }
     groupedRatings[unseenMovie.user_id].notSeen.push(unseenMovie.movie);
   }
@@ -130,7 +157,9 @@ function groupRatingsByUser(
   return groupedRatings;
 }
 
-function formatGroupedRatingsForOpenAI(groupedRatings: ReturnType<typeof groupRatingsByUser>): string {
+function formatGroupedRatingsForOpenAI(
+  groupedRatings: ReturnType<typeof groupRatingsByUser>
+): string {
   let movieReviews = "";
 
   for (const userId in groupedRatings) {
@@ -158,7 +187,10 @@ function formatGroupedRatingsForOpenAI(groupedRatings: ReturnType<typeof groupRa
   return movieReviews;
 }
 
-async function fetchOpenAIRecommendations(movieReviews: string, configuration: Configuration) {
+async function fetchOpenAIRecommendations(
+  movieReviews: string,
+  configuration: Configuration
+) {
   try {
     const openai = new OpenAIApi(configuration);
     let completion = await openai.createChatCompletion({
@@ -173,14 +205,20 @@ async function fetchOpenAIRecommendations(movieReviews: string, configuration: C
     });
 
     const content = completion.data.choices[0].message?.content!;
-    const jsonSubstring = content.substring(content.indexOf("["), content.lastIndexOf("]") + 1);
+    const jsonSubstring = content.substring(
+      content.indexOf("["),
+      content.lastIndexOf("]") + 1
+    );
 
     try {
       // Try parsing the JSON
       return JSON.parse(jsonSubstring);
     } catch (parsingError) {
       // If parsing fails, use GPT-3.5-turbo to fix the JSON
-      console.error("Error parsing JSON, trying to fix with GPT-3.5-turbo:", parsingError);
+      console.error(
+        "Error parsing JSON, trying to fix with GPT-3.5-turbo:",
+        parsingError
+      );
 
       const fixedJSONCompletion = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
@@ -203,14 +241,18 @@ async function fetchOpenAIRecommendations(movieReviews: string, configuration: C
         ],
       });
 
-      const fixedJSONContent = fixedJSONCompletion.data.choices[0].message?.content!;
+      const fixedJSONContent =
+        fixedJSONCompletion.data.choices[0].message?.content!;
 
       try {
         // Try parsing the corrected JSON
         return JSON.parse(fixedJSONContent);
       } catch (secondParsingError) {
         // If parsing the corrected JSON fails as well
-        console.error("Error parsing corrected JSON from GPT-3.5-turbo:", secondParsingError);
+        console.error(
+          "Error parsing corrected JSON from GPT-3.5-turbo:",
+          secondParsingError
+        );
         throw new Error("JSON parsing error after correction attempt");
       }
     }
@@ -220,10 +262,14 @@ async function fetchOpenAIRecommendations(movieReviews: string, configuration: C
   }
 }
 
-async function fetchUserReviews(userIds: string[], client: VercelPoolClient): Promise<Review[]> {
+async function fetchUserReviews(
+  userIds: string[],
+  client: VercelPoolClient
+): Promise<Review[]> {
   const placeholders = userIds.map(() => "?").join(",");
   try {
-    const queryResult = await client.sql<Review>`SELECT * FROM reviews WHERE user_id IN (${placeholders})`;
+    const queryResult =
+      await client.sql<Review>`SELECT * FROM reviews WHERE user_id IN (${placeholders})`;
     return queryResult.rows;
   } catch (error) {
     console.error("Error fetching reviews from database:", error);
@@ -231,7 +277,10 @@ async function fetchUserReviews(userIds: string[], client: VercelPoolClient): Pr
   }
 }
 
-async function fetchUnseenMovies(userIds: string[], client: VercelPoolClient): Promise<UnseenMovie[]> {
+async function fetchUnseenMovies(
+  userIds: string[],
+  client: VercelPoolClient
+): Promise<UnseenMovie[]> {
   const placeholders = userIds.map(() => "?").join(",");
   try {
     const queryResponse =
