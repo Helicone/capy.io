@@ -23,6 +23,12 @@ export default async function handler(
   res: NextApiResponse<MovieRatingResponse>
 ) {
   const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({
+      error: "Unauthorized",
+    });
+    return;
+  }
 
   if (req.method === "POST") {
     const movieRating = JSON.parse(req.body) as MovieRating;
@@ -31,16 +37,16 @@ export default async function handler(
     res.status(200);
     return;
   } else if (req.method === "GET") {
-    const ratings = getMovieRatings();
+    const ratings = getMovieRatings(userId);
     res.status(200).json({
       ratings,
     });
+  } else {
+    res.status(404).json({
+      error:
+        "Method not found for movieRating, only POST works dog come on do better.",
+    });
   }
-
-  res.status(404).json({
-    error:
-      "Method not found for movieRating, only POST works dog come on do better.",
-  });
 }
 
 /*
