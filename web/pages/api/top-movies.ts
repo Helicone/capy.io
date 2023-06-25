@@ -46,7 +46,7 @@ export default async function handler(
     imdb_id: externalIdsResults[index].imdb_id,
   }));
 
-  response.setHeader("Cache-Control", `s-maxage=${60 * 60 * 24}, public`);
+  // response.setHeader("Cache-Control", `s-maxage=${60 * 60 * 24}, public`);
   console.log(topMoviesExtended);
   return response.status(200).json(topMoviesExtended);
 }
