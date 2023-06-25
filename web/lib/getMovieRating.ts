@@ -1,9 +1,16 @@
 import { MovieRating } from "@/pages/api/movieRating";
-import { getAuth } from "@clerk/nextjs/server";
-import { NextApiRequest } from "next";
+import { db } from "@vercel/postgres";
 
 export async function getMovieRatings(userId: string): Promise<MovieRating[]> {
-  // const pets = await client.sql`SELECT * FROM Pets;`;
-  console.log("userId", userId);
-  return [];
+  const client = await db.connect();
+
+  const { rows } =
+    await client.sql`SELECT * FROM reviews where user = ${userId};`;
+  console.log("rows", rows);
+
+  return rows.map((row) => ({
+    acceptedMovieImbdId: row.accepted_movie,
+    rejectedMovieImbdId: row.rejected_movie,
+    createdAt: new Date(row.created_at),
+  }));
 }
