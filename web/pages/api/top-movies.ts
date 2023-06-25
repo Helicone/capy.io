@@ -33,5 +33,6 @@ export default async function handler(
   const topMovies = topMovieResults.map((r) => r.results).flat();
 
   response.setHeader("Cache-Control", `s-maxage=${60 * 60 * 24}, public`);
+  console.log(topMovies);
   return response.status(200).json(topMovies);
 }
