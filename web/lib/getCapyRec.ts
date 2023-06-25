@@ -91,6 +91,7 @@ async function fetchMovieInformation(imdbId: string): Promise<{ posterUrl: strin
     const response = await api.v3.find.findById(imdbId, {
       external_source: "imdb_id",
     });
+    console.log(response);
     return {
       posterUrl: "https://image.tmdb.org/t/p/w780" + response.movie_results[0].poster_path,
       description: response.movie_results[0].overview,
@@ -181,15 +182,18 @@ async function fetchOpenAIRecommendations(movieReviews: string, configuration: C
           role: "system",
           content: capyRecSystemPrompt,
         },
-        { role: "user", content: `Give 2 movie recommendations for the following user(s): ${movieReviews}` },
+        {
+          role: "user",
+          content: `Give 2 movie recommendations for the following user(s): ${movieReviews}.
+        The response should ONLY include JSON and be an array, where each element of the array is an object. Each object within the array represents a movie and consists of two properties: title and imbdId.
+        - title is a string that indicates the title of the movie.
+        - imbdId is a string that indicates the IMDb ID of the movie.`,
+        },
       ],
     });
 
-    console.log("OpenAI completion:", completion); // Added console log
     const content = completion.data.choices[0].message?.content!;
-    const jsonSubstring = content.substring(content.indexOf("["), content.lastIndexOf("]") + 1);
-
-    console.log("JSON substring:", jsonSubstring); // Added console log
+    let jsonSubstring = content.substring(content.indexOf("["), content.lastIndexOf("]") + 1);
 
     try {
       // Try parsing the JSON
@@ -214,7 +218,7 @@ async function fetchOpenAIRecommendations(movieReviews: string, configuration: C
                 {title: string, imbdId: string},
             ]
             """
-            Please correct the following JSON:\n${jsonSubstring}`,
+            Please correct the following to conform to the above JSON:\n${content}`,
           },
         ],
       });
@@ -257,7 +261,8 @@ async function fetchUnseenMovies(userIds: string[], client: VercelPoolClient): P
     const unseenMovies: UnseenMovie[] = [];
 
     for (const userId of userIds) {
-      const queryResponse = await client.sql<UnseenMovie>`SELECT user_id, movie FROM user_to_movie_meta WHERE has_seen = false and user_id = ${userId}`;
+      const queryResponse =
+        await client.sql<UnseenMovie>`SELECT user_id, movie FROM user_to_movie_meta WHERE has_seen = false and user_id = ${userId}`;
       unseenMovies.push(...queryResponse.rows);
     }
 
@@ -267,4 +272,3 @@ async function fetchUnseenMovies(userIds: string[], client: VercelPoolClient): P
     throw new Error("Database error");
   }
 }
-
