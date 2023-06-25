@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { TMDBNodeApi } from "tmdb-js-node";
+import { DiscoverMovieDiscoverResult, TMDBNodeApi } from "tmdb-js-node";
 
 const apiKey =
   process.env.TMDB_API_KEY ||
@@ -8,6 +8,8 @@ const apiKey =
     process.exit(-1);
   })();
 const api = new TMDBNodeApi(apiKey);
+
+export type DiscoverMovieDiscoverResultExtended = DiscoverMovieDiscoverResult & { imdb_id: string };
 
 export default async function handler(
   request: NextApiRequest,
@@ -32,7 +34,19 @@ export default async function handler(
   );
   const topMovies = topMovieResults.map((r) => r.results).flat();
 
+  // Add IMDB ID to each movie
+  const externalIdsPromises = topMovies.map(movie =>
+    api.v3.movies.getExternalIds(movie.id)
+  );
+  const externalIdsResults = await Promise.all(externalIdsPromises);
+
+  // Map responses to DiscoverMovieDiscoverResultExtended
+  const topMoviesExtended: DiscoverMovieDiscoverResultExtended[] = topMovies.map((movie, index) => ({
+    ...movie,
+    imdb_id: externalIdsResults[index].imdb_id,
+  }));
+
   response.setHeader("Cache-Control", `s-maxage=${60 * 60 * 24}, public`);
-  console.log(topMovies);
-  return response.status(200).json(topMovies);
+  console.log(topMoviesExtended);
+  return response.status(200).json(topMoviesExtended);
 }

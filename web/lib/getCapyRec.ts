@@ -1,8 +1,8 @@
 import { CapyMovieRec } from "@/pages/api/capyRec";
 import { VercelPoolClient, db } from "@vercel/postgres";
 import { Configuration, OpenAIApi } from "helicone-openai";
-import { TMDBNodeApi } from "tmdb-js-node";
-import { capyRecSystemPrompt } from "./prompts";
+import { FindFindByIdParams, TMDBNodeApi } from "tmdb-js-node";
+import { capyRecSystemPrompt, capyRecSystemPrompt2_Improve } from "./prompts";
 
 const apiKey =
   process.env.TMDB_API_KEY ||
@@ -88,9 +88,22 @@ async function formatMovieRecommendations(capyRecs: CapyRec[]): Promise<CapyMovi
 
 async function fetchMovieInformation(imdbId: string): Promise<{ posterUrl: string; description: string }> {
   try {
-    const response = await api.v3.find.findById(imdbId, {
+    const args: FindFindByIdParams = {
       external_source: "imdb_id",
-    });
+    };
+    const response = await api.v3.find.findById(imdbId, args);
+    // const url = `https://api.themoviedb.org/3/find/${imdbId}?external_source=imdb_id`;
+    // const options = {
+    //   method: "GET",
+    //   headers: {
+    //     accept: "application/json",
+    //     Authorization: `Bearer ${process.env.TMDB_API_KEY}`,
+    //   },
+    // };
+
+    // const response = await fetch(url, options);
+    // const json = await response.json();
+
     console.log(response);
     return {
       posterUrl: "https://image.tmdb.org/t/p/w780" + response.movie_results[0].poster_path,
@@ -98,7 +111,7 @@ async function fetchMovieInformation(imdbId: string): Promise<{ posterUrl: strin
     };
   } catch (error) {
     console.error("Error fetching movie from TMDB API:", error);
-    throw new Error("TMDB API error");
+    throw error;
   }
 }
 
@@ -184,16 +197,34 @@ async function fetchOpenAIRecommendations(movieReviews: string, configuration: C
         },
         {
           role: "user",
-          content: `Give 2 movie recommendations for the following user(s): ${movieReviews}.
-        The response should ONLY include JSON and be an array, where each element of the array is an object. Each object within the array represents a movie and consists of two properties: title and imbdId.
-        - title is a string that indicates the title of the movie.
-        - imbdId is a string that indicates the IMDb ID of the movie.`,
+          content: `Give 2 movie recommendations for the following user(s): ${movieReviews}.`,
         },
       ],
     });
 
-    const content = completion.data.choices[0].message?.content!;
-    let jsonSubstring = content.substring(content.indexOf("["), content.lastIndexOf("]") + 1);
+    const firstResponseContent = completion.data.choices[0].message?.content!;
+
+    // Second GPT-4 request
+    completion = await openai.createChatCompletion({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: capyRecSystemPrompt2_Improve, // Using the second prompt to improve recommendations
+        },
+        {
+          role: "user",
+          content: `Here are the people we are recommending movies for: ${movieReviews}.
+           Here is the previous recommendation to improve and fix: ${firstResponseContent}`, // Using response from the first request
+        },
+      ],
+    });
+
+    const secondResponseContent = completion.data.choices[0].message?.content!;
+    let jsonSubstring = secondResponseContent.substring(
+      secondResponseContent.indexOf("["),
+      secondResponseContent.lastIndexOf("]") + 1
+    );
 
     try {
       // Try parsing the JSON
@@ -214,11 +245,19 @@ async function fetchOpenAIRecommendations(movieReviews: string, configuration: C
             content: `You are a helpful assistant that corrects JSON syntax to this valid structure:
             """
             [
-                {title: string, imbdId: string},
-                {title: string, imbdId: string},
-            ]
+              {
+                  title: string,
+                  imdbID: string,
+                  rationales: ["", "", ...]
+              },
+              {
+                  title: string,
+                  imdbID: string,
+                  rationales: ["", "", ...]
+              }
+          ]
             """
-            Please correct the following to conform to the above JSON:\n${content}`,
+            Please correct the following to conform to the above JSON:\n${secondResponseContent}`,
           },
         ],
       });
@@ -231,7 +270,7 @@ async function fetchOpenAIRecommendations(movieReviews: string, configuration: C
       } catch (secondParsingError) {
         // If parsing the corrected JSON fails as well
         console.error("Error parsing corrected JSON from GPT-3.5-turbo:", secondParsingError);
-        throw new Error("JSON parsing error after correction attempt");
+        throw secondParsingError;
       }
     }
   } catch (error) {
@@ -252,7 +291,7 @@ async function fetchUserReviews(userIds: string[], client: VercelPoolClient): Pr
     return reviews;
   } catch (error) {
     console.error("Error fetching reviews from database:", error);
-    throw new Error("Database error");
+    throw error;
   }
 }
 
@@ -269,6 +308,6 @@ async function fetchUnseenMovies(userIds: string[], client: VercelPoolClient): P
     return unseenMovies;
   } catch (error) {
     console.error("Error fetching unseen movies from database:", error);
-    throw new Error("Database error");
+    throw error;
   }
 }

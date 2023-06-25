@@ -4,8 +4,8 @@ import { useUser } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { DiscoverMovieDiscoverResult } from "tmdb-js-node";
 import { MovieRatingResponse } from "./api/movieRating";
+import { DiscoverMovieDiscoverResultExtended } from "./api/top-movies";
 
 interface QuizProps {}
 
@@ -38,7 +38,7 @@ const Quiz = (props: QuizProps) => {
         },
       });
 
-      return resp.json() as Promise<DiscoverMovieDiscoverResult[]>;
+      return resp.json() as Promise<DiscoverMovieDiscoverResultExtended[]>;
     },
     refetchOnWindowFocus: false,
   });
@@ -73,7 +73,7 @@ const Quiz = (props: QuizProps) => {
     }
   }, [myList?.ratings]);
 
-  const [movies, setMovies] = useState<DiscoverMovieDiscoverResult[]>([]);
+  const [movies, setMovies] = useState<DiscoverMovieDiscoverResultExtended[]>([]);
 
   useEffect(() => {
     if (topMovies) {
@@ -85,9 +85,9 @@ const Quiz = (props: QuizProps) => {
     return null;
   }
 
-  const onMovieSelect = (movie: DiscoverMovieDiscoverResult) => {
-    const acceptedMovieId = movie.id;
-    const rejectedMovieId = movies.filter((m) => m.id !== movie.id)[0].id;
+  const onMovieSelect = (movie: DiscoverMovieDiscoverResultExtended) => {
+    const acceptedMovieId = movie.imdb_id;
+    const rejectedMovieId = movies.filter((m) => m.imdb_id !== movie.imdb_id)[0].imdb_id;
     fetch("/api/movieRating", {
       method: "POST",
       headers: {
@@ -104,7 +104,7 @@ const Quiz = (props: QuizProps) => {
     setNumberOfMoviesRated(numberOfMoviesRated + 1);
   };
 
-  const renderMovieCard = (movie: DiscoverMovieDiscoverResult, idx: number) => {
+  const renderMovieCard = (movie: DiscoverMovieDiscoverResultExtended, idx: number) => {
     const moviePath = "https://image.tmdb.org/t/p/w780" + movie.poster_path;
     return (
       <button
@@ -154,7 +154,7 @@ const Quiz = (props: QuizProps) => {
               <p>Loading...</p>
             ) : (
               <>
-                {movies.map((movie: DiscoverMovieDiscoverResult, idx) =>
+                {movies.map((movie: DiscoverMovieDiscoverResultExtended, idx) =>
                   renderMovieCard(movie, idx)
                 )}
               </>
