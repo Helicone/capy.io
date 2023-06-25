@@ -11,7 +11,7 @@ export type CapyRecResponse =
   | { error: string };
 
 export interface CapyMovieRec {
-  imbdId: string;
+  imdbID: string;
   title: string;
   posterUrl: string;
   description: string;

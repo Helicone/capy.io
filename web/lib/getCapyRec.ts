@@ -26,7 +26,7 @@ interface UnseenMovie {
 
 interface CapyRec {
   title: string;
-  imbdId: string;
+  imdbID: string;
 }
 export async function getMovieRatings(userIds: string[]): Promise<CapyMovieRec[]> {
   console.log("getMovieRatings started"); // Added console log
@@ -69,10 +69,10 @@ export async function getMovieRatings(userIds: string[]): Promise<CapyMovieRec[]
 async function formatMovieRecommendations(capyRecs: CapyRec[]): Promise<CapyMovieRec[]> {
   const recommendationPromises = capyRecs.map(async (rec) => {
     try {
-      const { imbdId, title } = rec;
-      const additionalInfo = await fetchMovieInformation(imbdId);
+      const { imdbID, title } = rec;
+      const additionalInfo = await fetchMovieInformation(imdbID);
       return {
-        imbdId,
+        imdbID,
         title,
         posterUrl: additionalInfo.posterUrl,
         description: additionalInfo.description,
@@ -88,6 +88,7 @@ async function formatMovieRecommendations(capyRecs: CapyRec[]): Promise<CapyMovi
 
 async function fetchMovieInformation(imdbId: string): Promise<{ posterUrl: string; description: string }> {
   try {
+    console.log(`Fetching movie information for ${imdbId}`); // Added console log
     const args: FindFindByIdParams = {
       external_source: "imdb_id",
     };
@@ -185,7 +186,7 @@ function formatGroupedRatingsForOpenAI(groupedRatings: ReturnType<typeof groupRa
   return movieReviews;
 }
 
-async function fetchOpenAIRecommendations(movieReviews: string, configuration: Configuration) {
+async function fetchOpenAIRecommendations(movieReviews: string, configuration: Configuration): Promise<CapyRec[]> {
   try {
     const openai = new OpenAIApi(configuration);
     let completion = await openai.createChatCompletion({
