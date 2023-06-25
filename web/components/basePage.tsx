@@ -9,7 +9,7 @@ const BasePage = (props: BasePageProps) => {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-primary divide-y divide-gray-500">
-      <nav className="w-full p-4 flex flex-row items-center justify-between">
+      <nav className="w-full py-4 px-8 flex flex-row items-center justify-between">
         <p className="text-white font-semibold text-2xl font-mono tracking-tight">
           Capybara Recs
         </p>
@@ -17,7 +17,7 @@ const BasePage = (props: BasePageProps) => {
           <SignOutButton />
         </div>
       </nav>
-      <main className={`flex flex-col h-full w-full px-4 space-y-8`}>
+      <main className={`flex flex-col h-full w-full py-4 px-8 space-y-8`}>
         {children}
       </main>
     </div>

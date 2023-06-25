@@ -10,13 +10,7 @@ interface HomeProps {
 }
 
 const Home = (props: HomeProps) => {
-  const { isLoaded, isSignedIn, user } = useUser();
-
-  const router = useRouter();
-
-  if ((!isLoaded || !isSignedIn) && typeof window !== "undefined") {
-    router.push("/");
-  }
+  const { user } = useUser();
 
   return (
     <BasePage>
@@ -49,9 +43,7 @@ const Home = (props: HomeProps) => {
           <p className="text-gray-400 font-semibold text-md">
             Find a movie recommendation with a friend.
           </p>
-          <div className="w-full flex justify-end">
-            <p className="text-gray-200 text flex-end pt-8">{`< 2 minutes`}</p>
-          </div>
+          <div className="w-full flex justify-end pt-6"></div>
         </Link>
       </div>
     </BasePage>
