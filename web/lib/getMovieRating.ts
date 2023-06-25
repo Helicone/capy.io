@@ -4,8 +4,9 @@ import { db } from "@vercel/postgres";
 export async function getMovieRatings(userId: string): Promise<MovieRating[]> {
   const client = await db.connect();
 
-  const { rows } =
-    await client.sql`SELECT * FROM reviews where user = ${userId};`;
+  const { rows, command } =
+    await client.sql`SELECT * FROM reviews where user_id = ${userId};`;
+  console.log("commmand", command);
   console.log("rows", rows);
 
   return rows.map((row) => ({
