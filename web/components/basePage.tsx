@@ -13,9 +13,9 @@ const BasePage = (props: BasePageProps) => {
         <p className="text-white font-semibold text-2xl font-mono tracking-tight">
           Capybara Recs
         </p>
-        <button className="bg-accent hover:bg-violet-700 px-4 py-2 text-white rounded-xl font-medium text-md">
+        <div className="bg-accent hover:bg-violet-700 px-4 py-2 text-white rounded-xl font-medium text-md">
           <SignOutButton />
-        </button>
+        </div>
       </nav>
       <main className={`flex flex-col h-full w-full px-4 space-y-8`}>
         {children}
