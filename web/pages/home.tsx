@@ -3,6 +3,7 @@ import { useUser, SignOutButton } from "@clerk/nextjs";
 import { GetServerSideProps } from "next";
 import Link from "next/link";
 import BasePage from "@/components/basePage";
+import { useRouter } from "next/router";
 
 interface HomeProps {
   user: User;
@@ -11,14 +12,16 @@ interface HomeProps {
 const Home = (props: HomeProps) => {
   const { isLoaded, isSignedIn, user } = useUser();
 
-  if (!isLoaded || !isSignedIn) {
-    return null;
+  const router = useRouter();
+
+  if ((!isLoaded || !isSignedIn) && typeof window !== "undefined") {
+    router.push("/");
   }
 
   return (
     <BasePage>
       <p className="text-gray-400 font-semibold text-2xl py-8">
-        Hello, <span className="text-white">{user.username}</span> welcome to
+        Hello, <span className="text-white">{user?.username}</span> welcome to
         Capybara Recs!
       </p>
       <div className="flex flex-wrap gap-4">

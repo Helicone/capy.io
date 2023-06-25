@@ -2,11 +2,7 @@ import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 
 export default function Home() {
-  const { isLoaded, isSignedIn, user } = useUser();
-
-  if (!isLoaded || !isSignedIn) {
-    return null;
-  }
+  const { user } = useUser();
 
   return (
     <main
