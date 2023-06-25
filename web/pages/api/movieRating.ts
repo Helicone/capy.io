@@ -22,6 +22,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<MovieRatingResponse>
 ) {
+  console.log("Getting movie ratings");
   const { userId } = getAuth(req);
   if (!userId) {
     res.status(401).json({
@@ -31,12 +32,18 @@ export default async function handler(
   }
 
   if (req.method === "POST") {
-    const movieRating = JSON.parse(req.body) as MovieRating;
+    const movieRating = req.body as MovieRating;
+    console.log("movieRating", movieRating);
     const client = await db.connect();
-    await client.sql`INSERT INTO reviews (user_id, accepted_movie, rejected_movie) VALUES (${userId}, ${movieRating.acceptedMovieImbdId}, ${movieRating.rejectedMovieImbdId});`;
+    console.log("connected to db");
+    const insertRes =
+      await client.sql`INSERT INTO reviews (user_id, accepted_movie, rejected_movie) VALUES (${userId}, ${movieRating.acceptedMovieImbdId}, ${movieRating.rejectedMovieImbdId});`;
+    console.log("res", insertRes);
+
     res.status(200);
     return;
   } else if (req.method === "GET") {
+    console.log("Getting movie ratings");
     const ratings = await getMovieRatings(userId);
     res.status(200).json({
       ratings,
