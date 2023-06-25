@@ -36,7 +36,7 @@ export default async function handler(
       await client.sql`INSERT INTO reviews (user_id, accepted_movie, rejected_movie) VALUES (${userId}, ${movieRating.acceptedMovieImbdId}, ${movieRating.rejectedMovieImbdId});`;
     console.log("res", insertRes);
 
-    res.status(200);
+    res.status(200).json({});
     return;
   } else if (req.method === "GET") {
     console.log("Getting movie ratings");
