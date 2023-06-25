@@ -17,14 +17,17 @@ interface MovieRec {
   description: string;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<CapyRecResponse>) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<CapyRecResponse>
+) {
   const { userId } = getAuth(req);
   const client = await db.connect();
 
   if (req.method === "POST") {
     const { userIds } = req.body as CapyRecRequest;
-    const movieRecs = await getMovieRecs(userIds);
-    return res.status(200).json({ movieRecs });
+    // const movieRecs = await getMovieRecs(userIds);
+    // return res.status(200).json({ movieRecs });
   }
 
   try {
@@ -32,9 +35,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const names = ["Fiona", "Lucy"];
     await client.sql`INSERT INTO Pets (Name, Owner) VALUES (${names[0]}, ${names[1]});`;
   } catch (error) {
-    return response.status(500).json({ error });
+    // return response.status(500).json({ error });
   }
 
   const pets = await client.sql`SELECT * FROM Pets;`;
-  return response.status(200).json({ pets });
+  // return response.status(200).json({ pets });
 }

@@ -37,7 +37,7 @@ export default async function handler(
     res.status(200);
     return;
   } else if (req.method === "GET") {
-    const ratings = getMovieRatings(userId);
+    const ratings = await getMovieRatings(userId);
     res.status(200).json({
       ratings,
     });
