@@ -18,11 +18,7 @@ export interface MovieRating {
 }
 
 // Post da review up in here
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<MovieRatingResponse>
-) {
-  console.log("Getting movie ratings");
+export default async function handler(req: NextApiRequest, res: NextApiResponse<MovieRatingResponse>) {
   const { userId } = getAuth(req);
   if (!userId) {
     res.status(401).json({
